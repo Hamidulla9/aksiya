@@ -24,19 +24,14 @@
         .top-section { margin-top: 30px; background: #1a1a1a; padding: 20px; border-radius: 12px; }
         .top-title { font-size: 16px; color: #ff6600; margin-bottom: 15px; font-weight: bold; }
         .top-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #222; font-size: 14px; }
-        .top-item:last-child { border: none; }
         .nav-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: #1a1a1a; display: flex; justify-content: space-around; padding: 10px 0; border-top: 1px solid #222; }
-        .nav-bar button { padding: 5px 0; }
         .nav-item { background: none; border: none; color: #888888; font-size: 12px; display: flex; flex-direction: column; align-items: center; cursor: pointer; width: 25%; }
         .nav-item.active-nav { color: #ff6600; }
         .nav-icon { font-size: 20px; margin-bottom: 3px; }
         .profile-menu { background: #1a1a1a; border-radius: 12px; overflow: hidden; margin-top: 15px; }
         .profile-item { display: flex; justify-content: space-between; padding: 15px; border-bottom: 1px solid #222; align-items: center; }
-        select { background: #222; color: #fff; border: 1px solid #444; padding: 5px; border-radius: 4px; font-size: 14px; }
-
-        /* Status xabarlari uchun */
-        .status-box { display: none; margin-top: 15px; padding: 12px; border-radius: 8px; font-size: 14px; font-weight: bold; }
-        .status-success { display: block; background: #1b4332; color: #75e6da; border: 1px solid #2d6a4f; }
+        select, .phone-input { background: #222; color: #fff; border: 1px solid #444; padding: 5px; border-radius: 4px; font-size: 14px; }
+        .phone-input { width: 150px; text-align: right; }
     </style>
 </head>
 <body>
@@ -58,14 +53,12 @@
             <h3 id="lang-input-title" style="margin-bottom: 10px;">6 Xonali Kodni Kiriting</h3>
             <input type="text" id="promo-code" class="code-input" maxlength="6" placeholder="X X X X X X">
             <button class="primary-btn" id="lang-submit-btn" onclick="sendCodeToBot()">Kodni Tasdiqlash</button>
-            <div id="code-status" class="status-box"></div>
         </div>
     </div>
 
     <div id="page-shop" class="page">
         <h3 id="lang-shop-title" style="color: #ff6600; margin-bottom: 10px;">Mahsulotlar</h3>
         <div class="product-list" id="product-container"></div>
-        <div id="shop-status" class="status-box" style="text-align: center;"></div>
     </div>
 
     <div id="page-profile" class="page">
@@ -78,6 +71,10 @@
                     <option value="ru">Русский</option>
                     <option value="en">English</option>
                 </select>
+            </div>
+            <div class="profile-item">
+                <span id="lang-phone-title">Telefon raqam:</span>
+                <input type="text" id="user-phone" class="phone-input" placeholder="+998901234567" oninput="savePhone()">
             </div>
             <div class="profile-item" style="cursor: pointer;" onclick="openSupport()">
                 <span style="color: #ff6600; font-weight: bold;" id="lang-support">📞 Qo'llab-quvvatlash xizmati</span>
@@ -97,79 +94,47 @@
         const tg = window.Telegram.WebApp;
         tg.expand();
 
+        // ⚠️ DIQQAT: BU YERGA BOT TURGAN SERVERNING IP MANZILINI YOKI DOMENINI YOZING (Masalan: http://213.230.91.12:8080)
+        const SERVER_URL = "http://YOUR_SERVER_IP_OR_DOMAIN:8080"; 
+
         let userBalance = 0;
         let globalTopData = [];
         let currentLang = localStorage.getItem('selectedLanguage') || 'uz';
+        let userId = 0;
 
         const translations = {
             uz: {
-                balance_title: "Balansingiz",
-                ball_text: "ball",
-                top_title: "🏆 TOP 5 FOYDALANUVCHI",
-                input_title: "6 Xonali Kodni Kiriting",
-                submit_btn: "Kodni Tasdiqlash",
-                shop_title: "Mahsulotlar",
-                settings_title: "Sozlamalar",
-                select_lang: "Tilni tanlash",
-                support: "📞 Qo'llab-quvvatlash xizmati",
-                nav_main: "Asosiy",
-                nav_code: "Kod kiritish",
-                nav_shop: "Do'kon",
-                nav_profile: "Profil",
-                no_points: "Hali hech kimda ball yo'q",
-                alert_length: "Kod 6 xonali bo'lishi kerak!",
-                alert_no_ball: "Ballaringiz yetarli emas!",
-                confirm_buy: "mahsulotini {price} ballga sotib olasizmi?",
-                buy_btn: "Sotib olish",
-                tg_button_code: "Tasdiqlash uchun botga yuborish 💬",
-                tg_button_shop: "Xaridni tasdiqlash uchun yuborish 🛍",
-                success_msg: "Tayyor! Quyidagi tugmani bosib botga yuboring."
+                balance_title: "Balansingiz", ball_text: "ball", top_title: "🏆 TOP 5 FOYDALANUVCHI",
+                input_title: "6 Xonali Kodni Kiriting", submit_btn: "Kodni Tasdiqlash", shop_title: "Mahsulotlar",
+                settings_title: "Sozlamalar", select_lang: "Tilni tanlash", phone_title: "Telefon raqamingiz",
+                support: "📞 Qo'llab-quvvatlash xizmati", nav_main: "Asosiy", nav_code: "Kod kiritish",
+                nav_shop: "Do'kon", nav_profile: "Profil", no_points: "Hali hech kimda ball yo'q",
+                alert_length: "Kod 6 xonali bo'lishi kerak!", alert_no_ball: "Ballaringiz yetarli emas!",
+                confirm_buy: "mahsulotini {price} ballga sotib olasizmi?", buy_btn: "Sotib olish",
+                code_success: "🎉 Kod to'g'ri! +1 ball qo'shildi.", code_used: "❌ Bu kod allaqachon ishlatilgan!",
+                code_not_found: "❌ Bunday kod mavjud emas!", buy_success: "✅ Mahsulot sotib olindi! Ball chegirildi."
             },
             ru: {
-                balance_title: "Ваш баланс",
-                ball_text: "баллов",
-                top_title: "🏆 ТОП 5 ПОЛЬЗОВАТЕЛЕЙ",
-                input_title: "Введите 6-значный код",
-                submit_btn: "Подтвердить код",
-                shop_title: "Товары",
-                settings_title: "Настройки",
-                select_lang: "Выбор языка",
-                support: "📞 Служба поддержки",
-                nav_main: "Главная",
-                nav_code: "Ввод кода",
-                nav_shop: "Магазин",
-                nav_profile: "Профиль",
-                no_points: "Ни у кого еще нет баллов",
-                alert_length: "Код должен быть 6-значным!",
-                alert_no_ball: "Недостаточно баллов!",
-                confirm_buy: "Вы хотите купить товар {name} за {price} баллов?",
-                buy_btn: "Купить",
-                tg_button_code: "Отправить в бот для подтверждения 💬",
-                tg_button_shop: "Отправить для подтверждения покупки 🛍",
-                success_msg: "Готово! Нажмите на кнопку ниже, чтобы отправить в бот."
+                balance_title: "Ваш баланс", ball_text: "баллов", top_title: "🏆 ТОП 5 ПОЛЬЗОВАТЕЛЕЙ",
+                input_title: "Введите 6-значный код", submit_btn: "Подтвердить код", shop_title: "Товары",
+                settings_title: "Настройки", select_lang: "Выбор языка", phone_title: "Номер телефона",
+                support: "📞 Служба поддержки", nav_main: "Главная", nav_code: "Ввод кода",
+                nav_shop: "Магазин", nav_profile: "Профиль", no_points: "Ни у кого еще нет баллов",
+                alert_length: "Код должен быть 6-значным!", alert_no_ball: "Недостаточно баллов!",
+                confirm_buy: "Вы хотите купить товар {name} за {price} баллов?", buy_btn: "Купить",
+                code_success: "🎉 Код верный! Добавлен 1 балл.", code_used: "❌ Этот код уже использован!",
+                code_not_found: "❌ Такого кода не существует!", buy_success: "✅ Товар успешно куплен! Баллы списаны."
             },
             en: {
-                balance_title: "Your Balance",
-                ball_text: "points",
-                top_title: "🏆 TOP 5 USERS",
-                input_title: "Enter 6-Digit Code",
-                submit_btn: "Confirm Code",
-                shop_title: "Products",
-                settings_title: "Settings",
-                select_lang: "Select Language",
-                support: "📞 Support Service",
-                nav_main: "Main",
-                nav_code: "Enter Code",
-                nav_shop: "Shop",
-                nav_profile: "Profile",
-                no_points: "No one has points yet",
-                alert_length: "Code must be 6 digits!",
-                alert_no_ball: "Not enough points!",
-                confirm_buy: "Do you want to buy {name} for {price} points?",
-                buy_btn: "Buy Now",
-                tg_button_code: "Send to bot to confirm 💬",
-                tg_button_shop: "Send to confirm purchase 🛍",
-                success_msg: "Ready! Click the button below to send it to the bot."
+                balance_title: "Your Balance", ball_text: "points", top_title: "🏆 TOP 5 USERS",
+                input_title: "Enter 6-Digit Code", submit_btn: "Confirm Code", shop_title: "Products",
+                settings_title: "Settings", select_lang: "Select Language", phone_title: "Phone Number",
+                support: "📞 Support Service", nav_main: "Main", nav_code: "Enter Code",
+                nav_shop: "Shop", nav_profile: "Profile", no_points: "No one has points yet",
+                alert_length: "Code must be 6 digits!", alert_no_ball: "Not enough points!",
+                confirm_buy: "Do you want to buy {name} for {price} points?", buy_btn: "Buy Now",
+                code_success: "🎉 Code correct! +1 point added.", code_used: "❌ This code has already been used!",
+                code_not_found: "❌ Code not found!", buy_success: "✅ Purchased successfully! Points deducted."
             }
         };
 
@@ -182,7 +147,6 @@
 
         function updateUI() {
             const lang = translations[currentLang];
-
             document.getElementById('lang-balance-title').innerText = lang.balance_title;
             document.getElementById('lang-ball-text').innerText = lang.ball_text;
             document.getElementById('lang-top-title').innerText = lang.top_title;
@@ -191,13 +155,15 @@
             document.getElementById('lang-shop-title').innerText = lang.shop_title;
             document.getElementById('lang-settings-title').innerText = lang.settings_title;
             document.getElementById('lang-select-lang').innerText = lang.select_lang;
+            document.getElementById('lang-phone-title').innerText = lang.phone_title + ":";
             document.getElementById('lang-support').innerText = lang.support;
             document.getElementById('lang-nav-main').innerText = lang.nav_main;
             document.getElementById('lang-nav-code').innerText = lang.nav_code;
             document.getElementById('lang-nav-shop').innerText = lang.nav_shop;
             document.getElementById('lang-nav-profile').innerText = lang.nav_profile;
-
             document.getElementById('language-select').value = currentLang;
+
+            document.getElementById('user-phone').value = localStorage.getItem('userPhone') || '';
 
             renderTopList();
             renderShop();
@@ -209,11 +175,14 @@
             updateUI();
         }
 
+        function savePhone() {
+            localStorage.setItem('userPhone', document.getElementById('user-phone').value);
+        }
+
         function renderTopList() {
             const topListContainer = document.getElementById('top-list');
             topListContainer.innerHTML = '';
             const lang = translations[currentLang];
-
             if (globalTopData && globalTopData.length > 0) {
                 globalTopData.forEach((user, index) => {
                     topListContainer.innerHTML += `
@@ -222,11 +191,6 @@
                             <span style="color: #ff6600; font-weight:bold;">${user.balance} ${lang.ball_text}</span>
                         </div>`;
                 });
-            } else {
-                for(let i=1; i<=5; i++) {
-                    topListContainer.innerHTML += `
-                        <div class="top-item"><span>${i}. </span><span style="color:#444">${lang.no_points}</span></div>`;
-                }
             }
         }
 
@@ -234,7 +198,6 @@
             const container = document.getElementById('product-container');
             container.innerHTML = '';
             const lang = translations[currentLang];
-
             products.forEach(p => {
                 const productName = p.names[currentLang];
                 container.innerHTML += `
@@ -248,6 +211,7 @@
 
         const urlParams = new URLSearchParams(window.location.search);
         const rawData = urlParams.get('data');
+        userId = urlParams.get('user_id') || 0;
 
         if (rawData) {
             try {
@@ -255,74 +219,74 @@
                 userBalance = parsedData.balance;
                 document.getElementById('user-balance').innerText = userBalance;
                 globalTopData = parsedData.top;
-            } catch (e) {
-                console.error("Xatolik:", e);
-            }
+            } catch (e) { console.error(e); }
         }
 
         function switchTab(tabId, element) {
-            tg.MainButton.hide();
-
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page'));
             document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active-nav'));
             document.getElementById('page-' + tabId).classList.add('active-page');
             element.classList.add('active-nav');
         }
 
+        // KODNI OYNAYOPILMASDAN TEKSHIRISH
         function sendCodeToBot() {
             const codeInput = document.getElementById('promo-code').value.trim().toUpperCase();
             const lang = translations[currentLang];
 
-            if(codeInput.length !== 6) {
-                alert(lang.alert_length);
-                return;
-            }
+            if(codeInput.length !== 6) { alert(lang.alert_length); return; }
 
-            const statusBox = document.getElementById('code-status');
-            statusBox.innerText = lang.success_msg;
-            statusBox.className = "status-box status-success";
-
-            tg.MainButton.setText(lang.tg_button_code);
-            tg.MainButton.show();
-
-            tg.MainButton.onClick(function() {
-                tg.sendData(JSON.stringify({ action: "submit_code", code: codeInput }));
-                tg.MainButton.hide();
-            });
+            fetch(`${SERVER_URL}/api/check_code`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ user_id: userId, code: codeInput })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.status === "success") {
+                    alert(lang.code_success);
+                    userBalance = data.new_balance;
+                    document.getElementById('user-balance').innerText = userBalance;
+                    document.getElementById('promo-code').value = '';
+                } else if(data.status === "used") {
+                    alert(lang.code_used);
+                } else {
+                    alert(lang.code_not_found);
+                }
+            }).catch(err => alert("Server bilan bog'lanishda xatolik!"));
         }
 
-        // 💥 TUZATILGAN XARID FUNKSIYASI (ID orqali botga xavfsiz uzatadi)
+        // MAHSULOTNI OYNAYOPILMASDAN SOTIB OLISH
         function buyItem(id, name, price) {
             const lang = translations[currentLang];
-            if (userBalance < price) {
-                alert(lang.alert_no_ball);
-                return;
-            }
+            if (userBalance < price) { alert(lang.alert_no_ball); return; }
 
             let text = lang.confirm_buy;
             if(currentLang === 'uz') text = `${name} ${text.replace("{price}", price)}`;
             else text = text.replace("{name}", name).replace("{price}", price);
 
             if (confirm(text)) {
-                const shopStatus = document.getElementById('shop-status');
-                shopStatus.innerText = lang.success_msg;
-                shopStatus.className = "status-box status-success";
-
-                tg.MainButton.setText(lang.tg_button_shop);
-                tg.MainButton.show();
-
-                tg.MainButton.onClick(function() {
-                    // Botga maxsus identifikator (id) parametrini jo'natamiz
-                    tg.sendData(JSON.stringify({ action: "purchase", product_id: id }));
-                    tg.MainButton.hide();
-                });
+                const userPhone = localStorage.getItem('userPhone') || 'Kiritilmagan';
+                
+                fetch(`${SERVER_URL}/api/purchase`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user_id: userId, product_id: id, phone: userPhone })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if(data.status === "success") {
+                        alert(lang.buy_success);
+                        userBalance = data.new_balance;
+                        document.getElementById('user-balance').innerText = userBalance;
+                    } else {
+                        alert(lang.alert_no_ball);
+                    }
+                }).catch(err => alert("Xarid amalga oshmadi!"));
             }
         }
 
-        function openSupport() {
-            tg.openTelegramLink("https://t.me/startmix_manager");
-        }
-
+        function openSupport() { tg.openTelegramLink("https://t.me/startmix_manager"); }
         updateUI();
     </script>
 </body>
