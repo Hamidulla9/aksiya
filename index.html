@@ -26,13 +26,14 @@
         .top-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #222; font-size: 14px; }
         .top-item:last-child { border: none; }
         .nav-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: #1a1a1a; display: flex; justify-content: space-around; padding: 10px 0; border-top: 1px solid #222; }
-        .nav-item { background: none; border: none; color: #888888; font-size: 12px; display: flex; flex-direction: column; align-items: center; cursor: pointer; }
+        .nav-bar button { padding: 5px 0; }
+        .nav-item { background: none; border: none; color: #888888; font-size: 12px; display: flex; flex-direction: column; align-items: center; cursor: pointer; width: 25%; }
         .nav-item.active-nav { color: #ff6600; }
         .nav-icon { font-size: 20px; margin-bottom: 3px; }
         .profile-menu { background: #1a1a1a; border-radius: 12px; overflow: hidden; margin-top: 15px; }
         .profile-item { display: flex; justify-content: space-between; padding: 15px; border-bottom: 1px solid #222; align-items: center; }
         select { background: #222; color: #fff; border: 1px solid #444; padding: 5px; border-radius: 4px; font-size: 14px; }
-        
+
         /* Status xabarlari uchun */
         .status-box { display: none; margin-top: 15px; padding: 12px; border-radius: 8px; font-size: 14px; font-weight: bold; }
         .status-success { display: block; background: #1b4332; color: #75e6da; border: 1px solid #2d6a4f; }
@@ -98,7 +99,7 @@
 
         let userBalance = 0;
         let globalTopData = [];
-        let currentLang = localStorage.getItem('selectedLanguage') || 'uz'; 
+        let currentLang = localStorage.getItem('selectedLanguage') || 'uz';
 
         const translations = {
             uz: {
@@ -181,7 +182,7 @@
 
         function updateUI() {
             const lang = translations[currentLang];
-            
+
             document.getElementById('lang-balance-title').innerText = lang.balance_title;
             document.getElementById('lang-ball-text').innerText = lang.ball_text;
             document.getElementById('lang-top-title').innerText = lang.top_title;
@@ -195,7 +196,7 @@
             document.getElementById('lang-nav-code').innerText = lang.nav_code;
             document.getElementById('lang-nav-shop').innerText = lang.nav_shop;
             document.getElementById('lang-nav-profile').innerText = lang.nav_profile;
-            
+
             document.getElementById('language-select').value = currentLang;
 
             renderTopList();
@@ -240,14 +241,14 @@
                     <div class="product-card">
                         <div class="product-name">${productName}</div>
                         <div class="product-price">${p.prices} ${lang.ball_text}</div>
-                        <button class="buy-btn" onclick="buyItem('${productName}', ${p.prices})">${lang.buy_btn}</button>
+                        <button class="buy-btn" onclick="buyItem('${p.id}', '${productName}', ${p.prices})">${lang.buy_btn}</button>
                     </div>`;
             });
         }
 
         const urlParams = new URLSearchParams(window.location.search);
         const rawData = urlParams.get('data');
-        
+
         if (rawData) {
             try {
                 const parsedData = JSON.parse(decodeURIComponent(rawData));
@@ -260,48 +261,44 @@
         }
 
         function switchTab(tabId, element) {
-            // Har safar oyna almashganda Telegram Main Buttonni yashiramiz
             tg.MainButton.hide();
-            
+
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page'));
             document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active-nav'));
             document.getElementById('page-' + tabId).classList.add('active-page');
             element.classList.add('active-nav');
         }
 
-        // 💥 KOD KIRITISH - Yopilib ketmaslik mexanizmi
         function sendCodeToBot() {
             const codeInput = document.getElementById('promo-code').value.trim().toUpperCase();
             const lang = translations[currentLang];
-            
-            if(codeInput.length !== 6) { 
-                alert(lang.alert_length); 
-                return; 
+
+            if(codeInput.length !== 6) {
+                alert(lang.alert_length);
+                return;
             }
-            
-            // Ekrandagi xabar
+
             const statusBox = document.getElementById('code-status');
             statusBox.innerText = lang.success_msg;
             statusBox.className = "status-box status-success";
-            
-            // Telegramning pastki asosiy tugmasini yoqamiz (Yopilmasdan ma'lumot uzatish yo'li)
+
             tg.MainButton.setText(lang.tg_button_code);
             tg.MainButton.show();
-            
+
             tg.MainButton.onClick(function() {
                 tg.sendData(JSON.stringify({ action: "submit_code", code: codeInput }));
                 tg.MainButton.hide();
             });
         }
 
-        // 💥 SOTIB OLISH - Yopilib ketmaslik mexanizmi
-        function buyItem(name, price) {
+        // 💥 TUZATILGAN XARID FUNKSIYASI (ID orqali botga xavfsiz uzatadi)
+        function buyItem(id, name, price) {
             const lang = translations[currentLang];
-            if (userBalance < price) { 
-                alert(lang.alert_no_ball); 
-                return; 
+            if (userBalance < price) {
+                alert(lang.alert_no_ball);
+                return;
             }
-            
+
             let text = lang.confirm_buy;
             if(currentLang === 'uz') text = `${name} ${text.replace("{price}", price)}`;
             else text = text.replace("{name}", name).replace("{price}", price);
@@ -310,19 +307,20 @@
                 const shopStatus = document.getElementById('shop-status');
                 shopStatus.innerText = lang.success_msg;
                 shopStatus.className = "status-box status-success";
-                
+
                 tg.MainButton.setText(lang.tg_button_shop);
                 tg.MainButton.show();
-                
+
                 tg.MainButton.onClick(function() {
-                    tg.sendData(JSON.stringify({ action: "purchase", product: name, price: price }));
+                    // Botga maxsus identifikator (id) parametrini jo'natamiz
+                    tg.sendData(JSON.stringify({ action: "purchase", product_id: id }));
                     tg.MainButton.hide();
                 });
             }
         }
 
-        function openSupport() { 
-            tg.openTelegramLink("https://t.me/startmix_manager"); 
+        function openSupport() {
+            tg.openTelegramLink("https://t.me/startmix_manager");
         }
 
         updateUI();
