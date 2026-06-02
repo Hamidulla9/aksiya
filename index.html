@@ -7,31 +7,53 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { background-color: #111111; color: #ffffff; font-family: 'Segoe UI', sans-serif; padding-bottom: 70px; }
+        body { background-color: #111111; color: #ffffff; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding-bottom: 70px; }
         .header { background: linear-gradient(135deg, #1f1f1f, #0a0a0a); padding: 25px 20px; text-align: center; border-bottom: 2px solid #ff6600; }
-        .balance-title { font-size: 14px; color: #aaaaaa; text-transform: uppercase; }
+        .balance-title { font-size: 14px; color: #aaaaaa; text-transform: uppercase; letter-spacing: 1px; }
         .balance-value { font-size: 36px; font-weight: bold; color: #ff6600; margin-top: 5px; }
         .page { display: none; padding: 20px; }
         .active-page { display: block; }
+        
+        /* Kod kiritish oynasi */
         .code-container { background: #1a1a1a; padding: 20px; border-radius: 12px; border: 1px solid #333; text-align: center; margin-top: 20px; }
-        .code-input { width: 100%; padding: 15px; font-size: 20px; text-align: center; text-transform: uppercase; background: #222; border: 1px solid #444; color: #fff; border-radius: 8px; margin-bottom: 15px; }
-        .primary-btn { width: 100%; background: #ff6600; color: #fff; border: none; padding: 15px; font-size: 16px; font-weight: bold; border-radius: 8px; cursor: pointer; }
+        .code-input { width: 100%; padding: 15px; font-size: 20px; text-align: center; letter-spacing: 4px; text-transform: uppercase; background: #222; border: 1px solid #444; color: #fff; border-radius: 8px; margin-bottom: 15px; }
+        .primary-btn { width: 100%; background: #ff6600; color: #fff; border: none; padding: 15px; font-size: 16px; font-weight: bold; border-radius: 8px; cursor: pointer; transition: 0.2s; }
+        .primary-btn:active { background: #cc5200; }
+        
+        /* Mahsulotlar do'koni */
         .product-list { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px; }
         .product-card { background: #1a1a1a; border-radius: 12px; padding: 15px; text-align: center; border: 1px solid #222; }
         .product-name { font-size: 15px; font-weight: 600; margin-bottom: 5px; }
         .product-price { color: #ff6600; font-weight: bold; font-size: 14px; margin-bottom: 10px; }
         .buy-btn { background: #222; color: #fff; border: 1px solid #ff6600; padding: 8px; font-size: 12px; border-radius: 6px; width: 100%; cursor: pointer; }
+        
+        /* TOP List */
         .top-section { margin-top: 30px; background: #1a1a1a; padding: 20px; border-radius: 12px; }
         .top-title { font-size: 16px; color: #ff6600; margin-bottom: 15px; font-weight: bold; }
         .top-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #222; font-size: 14px; }
+        .top-item:last-child { border: none; }
+        
+        /* Navigatsiya Bari */
         .nav-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: #1a1a1a; display: flex; justify-content: space-around; padding: 10px 0; border-top: 1px solid #222; }
         .nav-item { background: none; border: none; color: #888888; font-size: 12px; display: flex; flex-direction: column; align-items: center; cursor: pointer; width: 25%; }
         .nav-item.active-nav { color: #ff6600; }
         .nav-icon { font-size: 20px; margin-bottom: 3px; }
+        
+        /* Sozlamalar menyusi */
         .profile-menu { background: #1a1a1a; border-radius: 12px; overflow: hidden; margin-top: 15px; }
         .profile-item { display: flex; justify-content: space-between; padding: 15px; border-bottom: 1px solid #222; align-items: center; }
-        select, .phone-input { background: #222; color: #fff; border: 1px solid #444; padding: 5px; border-radius: 4px; font-size: 14px; }
-        .phone-input { width: 150px; text-align: right; }
+        select { background: #222; color: #fff; border: 1px solid #444; padding: 5px; border-radius: 4px; font-size: 14px; outline: none; }
+
+        /* 🔥 CHIROYLI VA MODERN TELEFON KIRITISH BLOKI */
+        .phone-box { background: linear-gradient(135deg, #26160d, #1a1a1a); border: 1px solid #ff6600; border-radius: 12px; padding: 20px; margin-top: 20px; box-shadow: 0 4px 15px rgba(255, 102, 0, 0.15); }
+        .phone-label { font-size: 14px; font-weight: bold; color: #ff6600; margin-bottom: 8px; display: block; text-transform: uppercase; letter-spacing: 0.5px; }
+        .phone-input-wrapper { position: relative; display: flex; align-items: center; }
+        .phone-custom-input { width: 100%; padding: 14px 15px; font-size: 16px; background: #111111; border: 1px solid #444; color: #fff; border-radius: 8px; font-weight: bold; letter-spacing: 1px; transition: 0.3s; }
+        .phone-custom-input:focus { border-color: #ff6600; box-shadow: 0 0 8px rgba(255, 102, 0, 0.3); outline: none; }
+
+        /* Status xabarlari */
+        .status-box { display: none; margin-top: 15px; padding: 12px; border-radius: 8px; font-size: 14px; font-weight: bold; text-align: center; }
+        .status-success { display: block; background: #1b4332; color: #75e6da; border: 1px solid #2d6a4f; }
     </style>
 </head>
 <body>
@@ -53,16 +75,26 @@
             <h3 id="lang-input-title" style="margin-bottom: 10px;">6 Xonali Kodni Kiriting</h3>
             <input type="text" id="promo-code" class="code-input" maxlength="6" placeholder="X X X X X X">
             <button class="primary-btn" id="lang-submit-btn" onclick="sendCodeToBot()">Kodni Tasdiqlash</button>
+            <div id="code-status" class="status-box"></div>
         </div>
     </div>
 
     <div id="page-shop" class="page">
         <h3 id="lang-shop-title" style="color: #ff6600; margin-bottom: 10px;">Mahsulotlar</h3>
         <div class="product-list" id="product-container"></div>
+        <div id="shop-status" class="status-box"></div>
     </div>
 
     <div id="page-profile" class="page">
         <h3 id="lang-settings-title">Sozlamalar</h3>
+        
+        <div class="phone-box">
+            <label class="phone-label" id="lang-phone-title">📞 Telefon raqamingiz</label>
+            <div class="phone-input-wrapper">
+                <input type="tel" id="user-phone" class="phone-input-wrapper phone-custom-input" placeholder="+998901234567" oninput="savePhone()">
+            </div>
+        </div>
+
         <div class="profile-menu">
             <div class="profile-item">
                 <span id="lang-select-lang">Tilni tanlash</span>
@@ -71,10 +103,6 @@
                     <option value="ru">Русский</option>
                     <option value="en">English</option>
                 </select>
-            </div>
-            <div class="profile-item">
-                <span id="lang-phone-title">Telefon raqam:</span>
-                <input type="text" id="user-phone" class="phone-input" placeholder="+998901234567" oninput="savePhone()">
             </div>
             <div class="profile-item" style="cursor: pointer;" onclick="openSupport()">
                 <span style="color: #ff6600; font-weight: bold;" id="lang-support">📞 Qo'llab-quvvatlash xizmati</span>
@@ -102,32 +130,35 @@
             uz: {
                 balance_title: "Balansingiz", ball_text: "ball", top_title: "🏆 TOP 5 FOYDALANUVCHI",
                 input_title: "6 Xonali Kodni Kiriting", submit_btn: "Kodni Tasdiqlash", shop_title: "Mahsulotlar",
-                settings_title: "Sozlamalar", select_lang: "Tilni tanlash", phone_title: "Telefon raqamingiz",
+                settings_title: "Sozlamalar", select_lang: "Tilni tanlash", phone_title: "📞 Telefon raqamingiz",
                 support: "📞 Qo'llab-quvvatlash xizmati", nav_main: "Asosiy", nav_code: "Kod kiritish",
                 nav_shop: "Do'kon", nav_profile: "Profil", no_points: "Hali hech kimda ball yo'q",
                 alert_length: "Kod 6 xonali bo'lishi kerak!", alert_no_ball: "Ballaringiz yetarli emas!",
                 confirm_buy: "mahsulotini {price} ballga sotib olasizmi?", buy_btn: "Sotib olish",
-                alert_phone: "Iltimos, oldin Profil bo'limida telefon raqamingizni kiriting!"
+                tg_button_code: "Tasdiqlash uchun botga yuborish 💬", tg_button_shop: "Xaridni tasdiqlash uchun yuborish 🛍",
+                success_msg: "Tayyor! Pastdagi katta olovrang tugmani bosing 👇", alert_phone: "Iltimos, oldin Profil bo'limida telefon raqamingizni kiriting!"
             },
             ru: {
                 balance_title: "Ваш баланс", ball_text: "баллов", top_title: "🏆 ТОП 5 ПОЛЬЗОВАТЕЛЕЙ",
                 input_title: "Введите 6-значный код", submit_btn: "Подтвердить код", shop_title: "Товары",
-                settings_title: "Настройки", select_lang: "Выбор языка", phone_title: "Номер телефона",
+                settings_title: "Настройки", select_lang: "Выбор языка", phone_title: "📞 Номер телефона",
                 support: "📞 Служба поддержки", nav_main: "Главная", nav_code: "Ввод кода",
                 nav_shop: "Магазин", nav_profile: "Профиль", no_points: "Ни у кого еще нет баллов",
                 alert_length: "Код должен быть 6-значным!", alert_no_ball: "Недостаточно баллов!",
                 confirm_buy: "Вы хотите купить товар {name} за {price} баллов?", buy_btn: "Купить",
-                alert_phone: "Пожалуйста, сначала введите номер телефона в профиле!"
+                tg_button_code: "Отправить в бот для подтверждения 💬", tg_button_shop: "Отправить для подтверждения покупки 🛍",
+                success_msg: "Готово! Нажмите на большую оранжевую кнопку снизу 👇", alert_phone: "Пожалуйста, сначала введите номер телефона в профиле!"
             },
             en: {
                 balance_title: "Your Balance", ball_text: "points", top_title: "🏆 TOP 5 USERS",
                 input_title: "Enter 6-Digit Code", submit_btn: "Confirm Code", shop_title: "Products",
-                settings_title: "Settings", select_lang: "Select Language", phone_title: "Phone Number",
+                settings_title: "Settings", select_lang: "Select Language", phone_title: "📞 Phone Number",
                 support: "📞 Support Service", nav_main: "Main", nav_code: "Enter Code",
                 nav_shop: "Shop", nav_profile: "Profile", no_points: "No one has points yet",
                 alert_length: "Code must be 6 digits!", alert_no_ball: "Not enough points!",
                 confirm_buy: "Do you want to buy {name} for {price} points?", buy_btn: "Buy Now",
-                alert_phone: "Please enter your phone number in Profile first!"
+                tg_button_code: "Send to bot to confirm 💬", tg_button_shop: "Send to confirm purchase 🛍",
+                success_msg: "Ready! Click the big orange button below 👇", alert_phone: "Please enter your phone number in Profile first!"
             }
         };
 
@@ -140,6 +171,7 @@
 
         function updateUI() {
             const lang = translations[currentLang];
+
             document.getElementById('lang-balance-title').innerText = lang.balance_title;
             document.getElementById('lang-ball-text').innerText = lang.ball_text;
             document.getElementById('lang-top-title').innerText = lang.top_title;
@@ -148,12 +180,13 @@
             document.getElementById('lang-shop-title').innerText = lang.shop_title;
             document.getElementById('lang-settings-title').innerText = lang.settings_title;
             document.getElementById('lang-select-lang').innerText = lang.select_lang;
-            document.getElementById('lang-phone-title').innerText = lang.phone_title + ":";
+            document.getElementById('lang-phone-title').innerText = lang.phone_title;
             document.getElementById('lang-support').innerText = lang.support;
             document.getElementById('lang-nav-main').innerText = lang.nav_main;
             document.getElementById('lang-nav-code').innerText = lang.nav_code;
             document.getElementById('lang-nav-shop').innerText = lang.nav_shop;
             document.getElementById('lang-nav-profile').innerText = lang.nav_profile;
+
             document.getElementById('language-select').value = currentLang;
             document.getElementById('user-phone').value = localStorage.getItem('userPhone') || '';
 
@@ -175,6 +208,7 @@
             const topListContainer = document.getElementById('top-list');
             topListContainer.innerHTML = '';
             const lang = translations[currentLang];
+
             if (globalTopData && globalTopData.length > 0) {
                 globalTopData.forEach((user, index) => {
                     topListContainer.innerHTML += `
@@ -183,6 +217,11 @@
                             <span style="color: #ff6600; font-weight:bold;">${user.balance} ${lang.ball_text}</span>
                         </div>`;
                 });
+            } else {
+                for(let i=1; i<=5; i++) {
+                    topListContainer.innerHTML += `
+                        <div class="top-item"><span>${i}. </span><span style="color:#444">${lang.no_points}</span></div>`;
+                }
             }
         }
 
@@ -190,6 +229,7 @@
             const container = document.getElementById('product-container');
             container.innerHTML = '';
             const lang = translations[currentLang];
+
             products.forEach(p => {
                 const productName = p.names[currentLang];
                 container.innerHTML += `
@@ -214,28 +254,39 @@
         }
 
         function switchTab(tabId, element) {
+            tg.MainButton.hide();
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page'));
             document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active-nav'));
             document.getElementById('page-' + tabId).classList.add('active-page');
             element.classList.add('active-nav');
         }
 
-        // OYNAYOPILMASDAN BOTGA CHIQISH (KOD UCHUN)
+        // 💬 KOD KIRITISH
         function sendCodeToBot() {
             const codeInput = document.getElementById('promo-code').value.trim().toUpperCase();
             const lang = translations[currentLang];
+
             if(codeInput.length !== 6) { alert(lang.alert_length); return; }
 
-            // Telegram bot manzilini ochamiz va maxsus start parametrini beramiz
-            tg.openTelegramLink(`https://t.me/startmix_bot?start=CODE_${codeInput}`);
+            const statusBox = document.getElementById('code-status');
+            statusBox.innerText = lang.success_msg;
+            statusBox.className = "status-box status-success";
+
+            tg.MainButton.setText(lang.tg_button_code);
+            tg.MainButton.show();
+
+            tg.MainButton.onClick(function() {
+                tg.sendData(JSON.stringify({ action: "submit_code", code: codeInput }));
+                tg.MainButton.hide();
+            });
         }
 
-        // OYNAYOPILMASDAN BOTGA CHIQISH (XARID UCHUN)
+        // 🛍 SOTIB OLISH
         function buyItem(id, name, price) {
             const lang = translations[currentLang];
-            const phone = localStorage.getItem('userPhone') || '';
-            
-            if (!phone) { alert(lang.alert_phone); return; }
+            const savedPhone = localStorage.getItem('userPhone') || '';
+
+            if(!savedPhone) { alert(lang.alert_phone); return; }
             if (userBalance < price) { alert(lang.alert_no_ball); return; }
 
             let text = lang.confirm_buy;
@@ -243,8 +294,17 @@
             else text = text.replace("{name}", name).replace("{price}", price);
 
             if (confirm(text)) {
-                // Xarid ma'lumotlarini bot tushunadigan qilib link orqali yuboramiz
-                tg.openTelegramLink(`https://t.me/startmix_bot?start=BUY_${id}_${phone}`);
+                const shopStatus = document.getElementById('shop-status');
+                shopStatus.innerText = lang.success_msg;
+                shopStatus.className = "status-box status-success";
+
+                tg.MainButton.setText(lang.tg_button_shop);
+                tg.MainButton.show();
+
+                tg.MainButton.onClick(function() {
+                    tg.sendData(JSON.stringify({ action: "purchase", product_id: id, phone: savedPhone }));
+                    tg.MainButton.hide();
+                });
             }
         }
 
