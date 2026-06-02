@@ -32,6 +32,10 @@
         .profile-menu { background: #1a1a1a; border-radius: 12px; overflow: hidden; margin-top: 15px; }
         .profile-item { display: flex; justify-content: space-between; padding: 15px; border-bottom: 1px solid #222; align-items: center; }
         select { background: #222; color: #fff; border: 1px solid #444; padding: 5px; border-radius: 4px; font-size: 14px; }
+        
+        /* Status xabarlari uchun */
+        .status-box { display: none; margin-top: 15px; padding: 12px; border-radius: 8px; font-size: 14px; font-weight: bold; }
+        .status-success { display: block; background: #1b4332; color: #75e6da; border: 1px solid #2d6a4f; }
     </style>
 </head>
 <body>
@@ -44,8 +48,7 @@
     <div id="page-main" class="page active-page">
         <div class="top-section">
             <p class="top-title" id="lang-top-title">🏆 TOP 5 FOYDALANUVCHI</p>
-            <div id="top-list">
-                </div>
+            <div id="top-list"></div>
         </div>
     </div>
 
@@ -54,13 +57,14 @@
             <h3 id="lang-input-title" style="margin-bottom: 10px;">6 Xonali Kodni Kiriting</h3>
             <input type="text" id="promo-code" class="code-input" maxlength="6" placeholder="X X X X X X">
             <button class="primary-btn" id="lang-submit-btn" onclick="sendCodeToBot()">Kodni Tasdiqlash</button>
+            <div id="code-status" class="status-box"></div>
         </div>
     </div>
 
     <div id="page-shop" class="page">
         <h3 id="lang-shop-title" style="color: #ff6600; margin-bottom: 10px;">Mahsulotlar</h3>
-        <div class="product-list" id="product-container">
-            </div>
+        <div class="product-list" id="product-container"></div>
+        <div id="shop-status" class="status-box" style="text-align: center;"></div>
     </div>
 
     <div id="page-profile" class="page">
@@ -94,16 +98,14 @@
 
         let userBalance = 0;
         let globalTopData = [];
-        // Standart til: agar saqlanmagan bo'lsa 'uz' olinadi
         let currentLang = localStorage.getItem('selectedLanguage') || 'uz'; 
 
-        // Tarjimalar paketi
         const translations = {
             uz: {
                 balance_title: "Balansingiz",
                 ball_text: "ball",
                 top_title: "🏆 TOP 5 FOYDALANUVCHI",
-                input_title: "6 Xonali Kodni Kiriting</h3>",
+                input_title: "6 Xonali Kodni Kiriting",
                 submit_btn: "Kodni Tasdiqlash",
                 shop_title: "Mahsulotlar",
                 settings_title: "Sozlamalar",
@@ -117,7 +119,10 @@
                 alert_length: "Kod 6 xonali bo'lishi kerak!",
                 alert_no_ball: "Ballaringiz yetarli emas!",
                 confirm_buy: "mahsulotini {price} ballga sotib olasizmi?",
-                buy_btn: "Sotib olish"
+                buy_btn: "Sotib olish",
+                tg_button_code: "Tasdiqlash uchun botga yuborish 💬",
+                tg_button_shop: "Xaridni tasdiqlash uchun yuborish 🛍",
+                success_msg: "Tayyor! Quyidagi tugmani bosib botga yuboring."
             },
             ru: {
                 balance_title: "Ваш баланс",
@@ -137,7 +142,10 @@
                 alert_length: "Код должен быть 6-значным!",
                 alert_no_ball: "Недостаточно баллов!",
                 confirm_buy: "Вы хотите купить товар {name} за {price} баллов?",
-                buy_btn: "Купить"
+                buy_btn: "Купить",
+                tg_button_code: "Отправить в бот для подтверждения 💬",
+                tg_button_shop: "Отправить для подтверждения покупки 🛍",
+                success_msg: "Готово! Нажмите на кнопку ниже, чтобы отправить в бот."
             },
             en: {
                 balance_title: "Your Balance",
@@ -157,11 +165,13 @@
                 alert_length: "Code must be 6 digits!",
                 alert_no_ball: "Not enough points!",
                 confirm_buy: "Do you want to buy {name} for {price} points?",
-                buy_btn: "Buy Now"
+                buy_btn: "Buy Now",
+                tg_button_code: "Send to bot to confirm 💬",
+                tg_button_shop: "Send to confirm purchase 🛍",
+                success_msg: "Ready! Click the button below to send it to the bot."
             }
         };
 
-        // Do'kon mahsulotlari ro'yxati (Uchala tildagi nomlari bilan)
         const products = [
             { id: 1, prices: 350, names: { uz: "Bolgarka", ru: "Болгарка", en: "Angle Grinder" } },
             { id: 2, prices: 500, names: { uz: "Perforator", ru: "Перфоратор", en: "Rotary Hammer" } },
@@ -169,7 +179,6 @@
             { id: 4, prices: 100, names: { uz: "Qo'lqop", ru: "Строительные перчатки", en: "Gloves" } }
         ];
 
-        // Tilni yangilash funksiyasi
         function updateUI() {
             const lang = translations[currentLang];
             
@@ -199,7 +208,6 @@
             updateUI();
         }
 
-        // TOP 5 talikni tilda chiqarish
         function renderTopList() {
             const topListContainer = document.getElementById('top-list');
             topListContainer.innerHTML = '';
@@ -216,15 +224,11 @@
             } else {
                 for(let i=1; i<=5; i++) {
                     topListContainer.innerHTML += `
-                        <div class="top-item">
-                            <span>${i}. </span>
-                            <span style="color:#444">${lang.no_points}</span>
-                        </div>`;
+                        <div class="top-item"><span>${i}. </span><span style="color:#444">${lang.no_points}</span></div>`;
                 }
             }
         }
 
-        // Do'konni tanlangan tilda chizish
         function renderShop() {
             const container = document.getElementById('product-container');
             container.innerHTML = '';
@@ -241,7 +245,6 @@
             });
         }
 
-        // Botdan kelgan ma'lumotni URL orqali qabul qilish
         const urlParams = new URLSearchParams(window.location.search);
         const rawData = urlParams.get('data');
         
@@ -257,36 +260,64 @@
         }
 
         function switchTab(tabId, element) {
+            // Har safar oyna almashganda Telegram Main Buttonni yashiramiz
+            tg.MainButton.hide();
+            
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page'));
             document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active-nav'));
             document.getElementById('page-' + tabId).classList.add('active-page');
             element.classList.add('active-nav');
         }
 
+        // 💥 KOD KIRITISH - Yopilib ketmaslik mexanizmi
         function sendCodeToBot() {
             const codeInput = document.getElementById('promo-code').value.trim().toUpperCase();
+            const lang = translations[currentLang];
+            
             if(codeInput.length !== 6) { 
-                alert(translations[currentLang].alert_length); 
-                return; 
-            }
-            tg.sendData(JSON.stringify({ action: "submit_code", code: codeInput }));
-            tg.close();
-        }
-
-        function buyItem(name, price) {
-            if (userBalance < price) { 
-                alert(translations[currentLang].alert_no_ball); 
+                alert(lang.alert_length); 
                 return; 
             }
             
-            let text = translations[currentLang].confirm_buy;
-            // Dinamik matn almashtirish
+            // Ekrandagi xabar
+            const statusBox = document.getElementById('code-status');
+            statusBox.innerText = lang.success_msg;
+            statusBox.className = "status-box status-success";
+            
+            // Telegramning pastki asosiy tugmasini yoqamiz (Yopilmasdan ma'lumot uzatish yo'li)
+            tg.MainButton.setText(lang.tg_button_code);
+            tg.MainButton.show();
+            
+            tg.MainButton.onClick(function() {
+                tg.sendData(JSON.stringify({ action: "submit_code", code: codeInput }));
+                tg.MainButton.hide();
+            });
+        }
+
+        // 💥 SOTIB OLISH - Yopilib ketmaslik mexanizmi
+        function buyItem(name, price) {
+            const lang = translations[currentLang];
+            if (userBalance < price) { 
+                alert(lang.alert_no_ball); 
+                return; 
+            }
+            
+            let text = lang.confirm_buy;
             if(currentLang === 'uz') text = `${name} ${text.replace("{price}", price)}`;
             else text = text.replace("{name}", name).replace("{price}", price);
 
             if (confirm(text)) {
-                tg.sendData(JSON.stringify({ action: "purchase", product: name, price: price }));
-                tg.close();
+                const shopStatus = document.getElementById('shop-status');
+                shopStatus.innerText = lang.success_msg;
+                shopStatus.className = "status-box status-success";
+                
+                tg.MainButton.setText(lang.tg_button_shop);
+                tg.MainButton.show();
+                
+                tg.MainButton.onClick(function() {
+                    tg.sendData(JSON.stringify({ action: "purchase", product: name, price: price }));
+                    tg.MainButton.hide();
+                });
             }
         }
 
@@ -294,7 +325,6 @@
             tg.openTelegramLink("https://t.me/startmix_manager"); 
         }
 
-        // Birinchi marta kirganda interfeysni chizish
         updateUI();
     </script>
 </body>
