@@ -3,97 +3,174 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>STARTMIX Web App</title>
+    <title>STARTMIX AKSIYA</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body { background-color: #121212; color: white; font-family: Arial, sans-serif; padding: 15px; }
-        .nav-tabs { display: flex; justify-content: space-around; margin-bottom: 20px; }
-        .tab-btn { background: #ff6600; border: none; color: white; padding: 10px; border-radius: 5px; cursor: pointer; }
-        .page { display: none; }
-        .active { display: block; }
-        .product-card { border: 1px solid #333; padding: 15px; margin-bottom: 10px; border-radius: 8px; background: #1e1e1e; }
-        .buy-btn { background-color: #ff6600; color: white; border: none; padding: 8px; border-radius: 5px; width: 100%; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background-color: #111111; color: #ffffff; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding-bottom: 70px; }
+        
+        /* Yuqori qism */
+        .header { background: linear-gradient(135deg, #1f1f1f, #0a0a0a); padding: 25px 20px; text-align: center; border-bottom: 2px solid #ff6600; }
+        .balance-title { font-size: 14px; color: #aaaaaa; text-transform: uppercase; letter-spacing: 1px; }
+        .balance-value { font-size: 36px; font-weight: bold; color: #ff6600; margin-top: 5px; }
+        
+        /* Sahifalar */
+        .page { display: none; padding: 20px; }
+        .active-page { display: block; }
+        
+        /* Input va Tugmalar */
+        .code-container { background: #1a1a1a; padding: 20px; border-radius: 12px; border: 1px solid #333; text-align: center; margin-top: 20px; }
+        .code-input { width: 100%; padding: 15px; font-size: 20px; text-align: center; letter-spacing: 4px; text-transform: uppercase; background: #222; border: 1px solid #444; color: #fff; border-radius: 8px; margin-bottom: 15px; }
+        .code-input:focus { border-color: #ff6600; outline: none; }
+        .primary-btn { width: 100%; background: #ff6600; color: #fff; border: none; padding: 15px; font-size: 16px; font-weight: bold; border-radius: 8px; cursor: pointer; transition: 0.2s; }
+        .primary-btn:active { transform: scale(0.98); background: #e05500; }
+        
+        /* Do'kon */
+        .product-list { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px; }
+        .product-card { background: #1a1a1a; border-radius: 12px; padding: 15px; text-align: center; border: 1px solid #222; }
+        .product-img { width: 70px; height: 70px; margin-bottom: 10px; }
+        .product-name { font-size: 15px; font-weight: 600; margin-bottom: 5px; }
+        .product-price { color: #ff6600; font-weight: bold; font-size: 14px; margin-bottom: 10px; }
+        .buy-btn { background: #222; color: #fff; border: 1px solid #ff6600; padding: 8px; font-size: 12px; border-radius: 6px; width: 100%; cursor: pointer; }
+        .buy-btn:active { background: #ff6600; }
+        
+        /* Top 5 list */
+        .top-section { margin-top: 30px; background: #1a1a1a; padding: 20px; border-radius: 12px; }
+        .top-title { font-size: 16px; color: #ff6600; margin-bottom: 15px; font-weight: bold; }
+        .top-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #222; font-size: 14px; }
+        .top-item:last-child { border: none; }
+        
+        /* Pastki menyu */
+        .nav-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: #1a1a1a; display: flex; justify-content: space-around; padding: 10px 0; border-top: 1px solid #222; }
+        .nav-item { background: none; border: none; color: #888888; font-size: 12px; display: flex; flex-direction: column; align-items: center; cursor: pointer; }
+        .nav-item.active-nav { color: #ff6600; }
+        .nav-icon { font-size: 20px; margin-bottom: 3px; }
+
+        /* Profil */
+        .profile-menu { background: #1a1a1a; border-radius: 12px; overflow: hidden; margin-top: 15px; }
+        .profile-item { display: flex; justify-content: space-between; padding: 15px; border-bottom: 1px solid #222; align-items: center; }
+        select { background: #222; color: #fff; border: 1px solid #444; padding: 5px; border-radius: 4px; }
     </style>
 </head>
 <body>
 
-    <div class="nav-tabs">
-        <button class="tab-btn" onclick="openPage('main')">Asosiy</button>
-        <button class="tab-btn" onclick="openPage('shop')">Do'kon</button>
-        <button class="tab-btn" onclick="openPage('profile')">Profil</button>
+    <div class="header">
+        <p class="balance-title">Balansingiz</p>
+        <div class="balance-value"><span id="user-balance">0</span> ball</div>
     </div>
 
-    <div id="main" class="page active">
-        <h2>Balansingiz: <span id="balance">250</span> ball</h2>
-        <hr>
-        <h3>🏆 Top 5 foydalanuvchi</h3>
-        <ol id="top-list">
-            <li>@user1 - 1500 ball</li>
-            <li>@user2 - 1200 ball</li>
-            <li>@user3 - 900 ball</li>
-        </ol>
-    </div>
-
-    <div id="shop" class="page">
-        <h3>Do'kon</h3>
-        <div class="product-card">
-            <h4>Bolgarka</h4>
-            <p>Narxi: 350 ball</p>
-            <button class="buy-btn" onclick="buyProduct('Bolgarka', 350)">Sotib olish</button>
-        </div>
-        <div class="product-card">
-            <h4>Perforator</h4>
-            <p>Narxi: 500 ball</p>
-            <button class="buy-btn" onclick="buyProduct('Perforator', 500)">Sotib olish</button>
+    <div id="page-main" class="page active-page">
+        <div class="top-section">
+            <p class="top-title">🏆 TOP 5 FOYDALANUVCHI</p>
+            <div id="top-list">
+                <div class="top-item"><span>1. </span><span style="color:#666">Hali hech kimda ball yo'q</span></div>
+                <div class="top-item"><span>2. </span><span></span></div>
+                <div class="top-item"><span>3. </span><span></span></div>
+                <div class="top-item"><span>4. </span><span></span></div>
+                <div class="top-item"><span>5. </span><span></span></div>
+            </div>
         </div>
     </div>
 
-    <div id="profile" class="page">
-        <h3>Profil</h3>
-        <p>Tilni tanlang:</p>
-        <select id="lang">
-            <option value="uz">O'zbekcha</option>
-            <option value="ru">Русский</option>
-            <option value="en">English</option>
-        </select>
-        <br><br>
-        <button class="buy-btn" onclick="contactSupport()">📞 Qo'llab-quvvatlash xizmati</button>
+    <div id="page-code" class="page">
+        <div class="code-container">
+            <h3 style="margin-bottom: 10px;">6 Xonali Kodni Kiriting</h3>
+            <p style="color: #888; font-size: 12px; margin-bottom: 15px;">Mahsulot qadog'idagi 6 xonali unikal kodni kiriting va ballga ega bo'ling.</p>
+            <input type="text" id="promo-code" class="code-input" maxlength="6" placeholder="X X X X X X">
+            <button class="primary-btn" onclick="sendCodeToBot()">Kodni Tasdiqlash</button>
+        </div>
+    </div>
+
+    <div id="page-shop" class="page">
+        <h3 style="color: #ff6600;">Mahsulotlar</h3>
+        <div class="product-list">
+            <div class="product-card">
+                <div class="product-name">Bolgarka</div>
+                <div class="product-price">350 ball</div>
+                <button class="buy-btn" onclick="buyItem('Bolgarka', 350)">Sotib olish</button>
+            </div>
+            <div class="product-card">
+                <div class="product-name">Perforator</div>
+                <div class="product-price">500 ball</div>
+                <button class="buy-btn" onclick="buyItem('Perforator', 500)">Sotib olish</button>
+            </div>
+            <div class="product-card">
+                <div class="product-name">Termos</div>
+                <div class="product-price">150 ball</div>
+                <button class="buy-btn" onclick="buyItem('Termos', 150)">Sotib olish</button>
+            </div>
+            <div class="product-card">
+                <div class="product-name">Qo'lqop</div>
+                <div class="product-price">100 ball</div>
+                <button class="buy-btn" onclick="buyItem('Qo\'lqop', 100)">Sotib olish</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="page-profile" class="page">
+        <h3>Sozlamalar</h3>
+        <div class="profile-menu">
+            <div class="profile-item">
+                <span>Tilni tanlash</span>
+                <select>
+                    <option>O'zbekcha</option>
+                    <option>Русский</option>
+                    <option>English</option>
+                </select>
+            </div>
+            <div class="profile-item" style="cursor: pointer;" onclick="openSupport()">
+                <span style="color: #ff6600; font-weight: bold;">📞 Qo'llab-quvvatlash xizmati</span>
+                <span style="color: #666;">&gt;</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="nav-bar">
+        <button class="nav-item active-nav" onclick="switchTab('main', this)"><span class="nav-icon">🏠</span>Asosiy</button>
+        <button class="nav-item" onclick="switchTab('code', this)"><span class="nav-icon">⌨️</span>Kod kiritish</button>
+        <button class="nav-item" onclick="switchTab('shop', this)"><span class="nav-icon">🛍</span>Do'kon</button>
+        <button class="nav-item" onclick="switchTab('profile', this)"><span class="nav-icon">👤</span>Profil</button>
     </div>
 
     <script>
-        // Telegram Web App API ni ishga tushirish
         const tg = window.Telegram.WebApp;
         tg.expand();
 
-        function openPage(pageId) {
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            document.getElementById(pageId).classList.add('active');
+        let userBalance = 0; // Balansingiz 0 qilindi
+
+        function switchTab(tabId, element) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page'));
+            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active-nav'));
+            
+            document.getElementById('page-' + tabId).classList.add('active-page');
+            element.classList.add('active-nav');
         }
 
-        function buyProduct(name, price) {
-            let currentBalance = parseInt(document.getElementById('balance').innerText);
-            if (currentBalance < price) {
-                alert("Mablag' yetarli emas!");
+        function sendCodeToBot() {
+            const codeInput = document.getElementById('promo-code').value.trim().toUpperCase();
+            if(codeInput.length !== 6) {
+                alert("Kod 6 xonali bo'lishi kerak!");
                 return;
             }
+            tg.sendData(JSON.stringify({ action: "submit_code", code: codeInput }));
+            tg.close();
+        }
 
-            if (confirm(`${name} mahsulotini ${price} ballga sotib olishni tasdiqlaysizmi?`)) {
-                // Balansni kamaytirish
-                document.getElementById('balance').innerText = currentBalance - price;
-
-                // Botga ma'lumot yuborish
-                tg.sendData(JSON.stringify({
-                    action: "purchase",
-                    product: name,
-                    price: price
-                }));
-                alert("Tabriklaymiz! Muvaffaqiyatli sotib olindi. Admin siz bilan bog'lanadi.");
+        function buyItem(name, price) {
+            if (userBalance < price) {
+                alert("Ballaringiz yetarli emas!");
+                return;
+            }
+            if (confirm(`${name} mahsulotini ${price} ballga sotib olasizmi?`)) {
+                userBalance -= price;
+                document.getElementById('user-balance').innerText = userBalance;
+                tg.sendData(JSON.stringify({ action: "purchase", product: name, price: price }));
+                tg.close();
             }
         }
 
-        function contactSupport() {
-            // Bot egasining shaxsiy profiliga yo'naltirish
-            tg.openTelegramLink("https://t.me/admin_username");
+        function openSupport() {
+            tg.openTelegramLink("https://t.me/startmix_manager");
         }
     </script>
 </body>
