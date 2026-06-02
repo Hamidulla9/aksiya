@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STARTMIX Web App</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body { background-color: #121212; color: white; font-family: Arial, sans-serif; padding: 15px; }
+        .nav-tabs { display: flex; justify-content: space-around; margin-bottom: 20px; }
+        .tab-btn { background: #ff6600; border: none; color: white; padding: 10px; border-radius: 5px; cursor: pointer; }
+        .page { display: none; }
+        .active { display: block; }
+        .product-card { border: 1px solid #333; padding: 15px; margin-bottom: 10px; border-radius: 8px; background: #1e1e1e; }
+        .buy-btn { background-color: #ff6600; color: white; border: none; padding: 8px; border-radius: 5px; width: 100%; }
+    </style>
+</head>
+<body>
+
+    <div class="nav-tabs">
+        <button class="tab-btn" onclick="openPage('main')">Asosiy</button>
+        <button class="tab-btn" onclick="openPage('shop')">Do'kon</button>
+        <button class="tab-btn" onclick="openPage('profile')">Profil</button>
+    </div>
+
+    <div id="main" class="page active">
+        <h2>Balansingiz: <span id="balance">250</span> ball</h2>
+        <hr>
+        <h3>🏆 Top 5 foydalanuvchi</h3>
+        <ol id="top-list">
+            <li>@user1 - 1500 ball</li>
+            <li>@user2 - 1200 ball</li>
+            <li>@user3 - 900 ball</li>
+        </ol>
+    </div>
+
+    <div id="shop" class="page">
+        <h3>Do'kon</h3>
+        <div class="product-card">
+            <h4>Bolgarka</h4>
+            <p>Narxi: 350 ball</p>
+            <button class="buy-btn" onclick="buyProduct('Bolgarka', 350)">Sotib olish</button>
+        </div>
+        <div class="product-card">
+            <h4>Perforator</h4>
+            <p>Narxi: 500 ball</p>
+            <button class="buy-btn" onclick="buyProduct('Perforator', 500)">Sotib olish</button>
+        </div>
+    </div>
+
+    <div id="profile" class="page">
+        <h3>Profil</h3>
+        <p>Tilni tanlang:</p>
+        <select id="lang">
+            <option value="uz">O'zbekcha</option>
+            <option value="ru">Русский</option>
+            <option value="en">English</option>
+        </select>
+        <br><br>
+        <button class="buy-btn" onclick="contactSupport()">📞 Qo'llab-quvvatlash xizmati</button>
+    </div>
+
+    <script>
+        // Telegram Web App API ni ishga tushirish
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+
+        function openPage(pageId) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
+        }
+
+        function buyProduct(name, price) {
+            let currentBalance = parseInt(document.getElementById('balance').innerText);
+            if (currentBalance < price) {
+                alert("Mablag' yetarli emas!");
+                return;
+            }
+
+            if (confirm(`${name} mahsulotini ${price} ballga sotib olishni tasdiqlaysizmi?`)) {
+                // Balansni kamaytirish
+                document.getElementById('balance').innerText = currentBalance - price;
+
+                // Botga ma'lumot yuborish
+                tg.sendData(JSON.stringify({
+                    action: "purchase",
+                    product: name,
+                    price: price
+                }));
+                alert("Tabriklaymiz! Muvaffaqiyatli sotib olindi. Admin siz bilan bog'lanadi.");
+            }
+        }
+
+        function contactSupport() {
+            // Bot egasining shaxsiy profiliga yo'naltirish
+            tg.openTelegramLink("https://t.me/admin_username");
+        }
+    </script>
+</body>
+</html>
